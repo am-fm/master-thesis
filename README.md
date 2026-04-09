@@ -1,11 +1,16 @@
 # gradthesis
 
-Inference
+### Training
 ```
+python train_brain_to_context_to_image.py
+```
+
+### Inference
+```python
 from diffusers import StableDiffusionPipeline
 import torch
 
-model_path = "sd-model-finetuned-b2c"
+model_path = "sd-model-finetuned"
 pipe = StableDiffusionPipeline.from_pretrained(model_path, torch_dtype=torch.float16)
 pipe.to("cuda")
 
