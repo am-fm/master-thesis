@@ -1,5 +1,5 @@
 # gradthesis
-We referred to [huggingface/diffusers](https://github.com/huggingface/diffusers/blob/main/examples/text_to_image/train_text_to_image.py).
+I referred to [huggingface/diffusers](https://github.com/huggingface/diffusers/blob/main/examples/text_to_image/train_text_to_image.py).
 ### Training
 ```
 python train_brain_to_context_to_image.py
