@@ -45,7 +45,6 @@ check_min_version("0.32.0.dev0")
 
 logger = get_logger(__name__, log_level="INFO")
 
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Simple example of a training script.")
     parser.add_argument(
@@ -822,7 +821,7 @@ def main():
                 "coco_captions": self.cached_captions[trial_idx]
             }
 
-    # データセットの作成
+    # Prepare the data
     train_sessions = list(range(1, args.session + 1))
     train_dataset = NSDOnDemandDataset(p_id=args.subj_id, session_list=train_sessions, base_path=args.prepare_path)
 
@@ -926,7 +925,6 @@ def main():
             resume="must"
         )
         wandb.config.update({"epochs": args.num_train_epochs}, allow_val_change=True)
-
 
     # Potentially load in the weights and states from a previous save
     if args.resume_from_checkpoint:
@@ -1034,7 +1032,7 @@ def main():
                 model_pred = unet(noisy_latents, timesteps, encoder_hidden_states, return_dict=False)[0]
 
                 batch_std = torch.sqrt(encoder_hidden_states.var(dim=[1,2]))
-                # 標準偏差
+                # standard deviation
                 loss_vtok = torch.mean(torch.relu(1.0 - batch_std)) * args.l_lambda
 
                 # CLIP embedding
@@ -1050,7 +1048,7 @@ def main():
                 alpha_prod_t_batch = alpha_prod_t.view(-1, 1, 1, 1)
                 x0_pred = (noisy_latents - (1 - alpha_prod_t_batch).sqrt() * model_pred) / alpha_prod_t_batch.sqrt()
                 loss_x0_mse = F.mse_loss(x0_pred, latents)
-                # コサイン類似度 / SSIM
+                # Cosine similarity / SSIM
                 B = x0_pred.shape[0]
                 pred = x0_pred.reshape(B, -1)
                 latent = latents.reshape(B, -1)
@@ -1058,7 +1056,7 @@ def main():
                 loss_x0_cos = F.cosine_embedding_loss(pred, latent, y)
                 loss_x0_ssim = 1.0 - ssim(x0_pred, latents, data_range=x0_pred.max() - x0_pred.min())
 
-                # ピアソン相関係数
+                # Pearson's correlation coefficient
                 pred_mean = pred.mean(dim=-1, keepdim=True)
                 latent_mean = latent.mean(dim=-1, keepdim=True)
                 p_centered = pred - pred_mean
@@ -1066,7 +1064,7 @@ def main():
                 corr = torch.nn.functional.cosine_similarity(p_centered, l_centered, dim=-1)
                 loss_x0_corr = 1 - corr.mean()
 
-                # velocity
+                # Velocity
                 target_v = noise_scheduler.get_velocity(latents, noise, timesteps)
                 loss_v = F.mse_loss(model_pred.float(), target_v.float(), reduction="mean")
 
@@ -1090,16 +1088,16 @@ def main():
                     loss = loss.mean(dim=list(range(1, len(loss.shape)))) * mse_loss_weights
                     loss = loss.mean()
 
-                # 1. CLIP領域
+                # 1. CLIP domain
                 loss_clip = (loss_clip_mse * 1.0) + (loss_clip_cos * 4.0) + (loss_contrastive * 1.0)
 
-                # 2. x0領域
+                # 2. X0 domain
                 loss_x0 = (loss_x0_mse * 0.5) + (loss_x0_cos * 1.0) + (loss_x0_ssim * 2.0) + (loss_x0_corr * 1.0)
 
-                # 3. x領域
+                # 3. Xt domain
                 loss_e = loss_v * 0.2 + loss
 
-                # 全体合算
+                # All loss
                 loss = loss_vtok + loss_x0 * 0.8 + loss_e + loss_clip
                 
                 # Gather the losses across all processes for logging (if we use distributed training).
@@ -1152,7 +1150,7 @@ def main():
                         save_path = os.path.join(args.output_dir, f"checkpoint-{global_step}")
                         accelerator.save_state(save_path)
                         logger.info(f"Saved state to {save_path}")
-                        torch.save(brain_encoder.state_dict(), f"{args.output_dir}/brain_encoder-{global_step}.pth") # B2C保存
+                        torch.save(brain_encoder.state_dict(), f"{args.output_dir}/brain_encoder-{global_step}.pth")
 
             logs = {"step_loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0]}
             progress_bar.set_postfix(**logs)
@@ -1182,7 +1180,7 @@ def main():
             revision=args.revision,
             variant=args.variant,
         )
-        pipeline.save_pretrained(args.output_dir) # 変更！！（追加）
+        pipeline.save_pretrained(args.output_dir)
         torch.save(brain_encoder.state_dict(), f"args.output_dir/brain_encoder.pth")
 
         # Run a final round of inference.
