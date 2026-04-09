@@ -54,7 +54,7 @@ def parse_args():
     parser.add_argument(
         "--pretrained_model_name_or_path",
         type=str,
-        default=None,
+        default="CompVis/stable-diffusion-v1-4",
         required=True,
         help="Path to pretrained model or model identifier from huggingface.co/models.",
     )
@@ -74,7 +74,7 @@ def parse_args():
     parser.add_argument(
         "--dataset_name",
         type=str,
-        default=None,
+        default="lambdalabs/naruto-blip-captions",
         help=(
             "The name of the Dataset (from the HuggingFace hub) to train on (could be your own, possibly private,"
             " dataset). It can also be a path pointing to a local copy of a dataset in your filesystem,"
@@ -182,7 +182,7 @@ def parse_args():
     parser.add_argument(
         "--learning_rate",
         type=float,
-        default=1e-4,
+        default=1e-6,
         help="Initial learning rate (after the potential warmup period) to use.",
     )
     parser.add_argument(
@@ -352,15 +352,15 @@ def parse_args():
     parser.add_argument("--dataset_path", type=str, default=None)
     parser.add_argument("--prepare_path", type=str, default=None)
     parser.add_argument("--subj_id", type=int, default=1, help="Training subject number.")
-    parser.add_argument("--session", type=int, default=0, help="Training last session number.")
+    parser.add_argument("--session", type=int, default=39, help="Training last session number.")
     parser.add_argument(
         "--b_learning_rate",
         type=float,
-        default=5e-5,
+        default=1e-4,
         help="Initial brain-to-context transformer learning rate (after the potential warmup period) to use.",
     )
     parser.add_argument("--b_scale", type=float, default=0.2)
-    parser.add_argument("--l_lambda", type=float, default=0.01)
+    parser.add_argument("--l_lambda", type=float, default=5)
     parser.add_argument("--wandb_resume", type=str, default=None, help="wandb old run id.")
 
     args = parser.parse_args()
